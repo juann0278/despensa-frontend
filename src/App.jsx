@@ -199,15 +199,27 @@ function App() {
             <p className="text-slate-500 text-sm">Control diario y general del negocio</p>
           </div>
 
-          {/* Selector de Mes */}
+          {/* Selector de Mes Desplegable */}
           <div className="flex items-center gap-3 bg-slate-50 p-3 rounded-xl border border-slate-200">
             <label className="text-sm font-medium text-slate-600">Mes:</label>
-            <input 
-              type="month" 
+            <select 
               value={mesFiltro}
               onChange={(e) => setMesFiltro(e.target.value)}
-              className="bg-white border border-slate-300 rounded-lg px-3 py-1.5 text-sm font-semibold text-slate-700 focus:outline-none focus:ring-2 focus:ring-indigo-500"
-            />
+              className="bg-white border border-slate-300 rounded-lg px-3 py-1.5 text-sm font-semibold text-slate-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 cursor-pointer"
+            >
+              <option value="2026-01">Enero 2026</option>
+              <option value="2026-02">Febrero 2026</option>
+              <option value="2026-03">Marzo 2026</option>
+              <option value="2026-04">Abril 2026</option>
+              <option value="2026-05">Mayo 2026</option>
+              <option value="2026-06">Junio 2026</option>
+              <option value="2026-07">Julio 2026</option>
+              <option value="2026-08">Agosto 2026</option>
+              <option value="2026-09">Septiembre 2026</option>
+              <option value="2026-10">Octubre 2026</option>
+              <option value="2026-11">Noviembre 2026</option>
+              <option value="2026-12">Diciembre 2026</option>
+            </select>
           </div>
         </div>
 
