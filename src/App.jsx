@@ -1,5 +1,8 @@
 import React, { useState, useEffect } from 'react';
 
+// Detecta automáticamente si está en la nube (Render) o en tu PC (Localhost)
+const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:8080';
+
 function App() {
   const [ventasDia, setVentasDia] = useState([]);
   const [gastosDia, setGastosDia] = useState([]);
@@ -40,10 +43,10 @@ function App() {
 
   const cargarDatosDia = async () => {
     try {
-      const resVentas = await fetch(`http://localhost:8080/api/ventas?fecha=${fechaFiltro}`);
+      const resVentas = await fetch(`${API_URL}/api/ventas?fecha=${fechaFiltro}`);
       if (resVentas.ok) setVentasDia(await resVentas.json());
 
-      const resGastos = await fetch(`http://localhost:8080/api/gastos?fecha=${fechaFiltro}`);
+      const resGastos = await fetch(`${API_URL}/api/gastos?fecha=${fechaFiltro}`);
       if (resGastos.ok) setGastosDia(await resGastos.json());
     } catch (error) {
       console.error("Error al cargar datos del día:", error);
@@ -53,10 +56,10 @@ function App() {
   const cargarDatosMes = async () => {
     try {
       const [anio, mes] = mesFiltro.split('-');
-      const resVentas = await fetch(`http://localhost:8080/api/ventas/mes?anio=${anio}&mes=${mes}`);
+      const resVentas = await fetch(`${API_URL}/api/ventas/mes?anio=${anio}&mes=${mes}`);
       if (resVentas.ok) setVentasMes(await resVentas.json());
 
-      const resGastos = await fetch(`http://localhost:8080/api/gastos/mes?anio=${anio}&mes=${mes}`);
+      const resGastos = await fetch(`${API_URL}/api/gastos/mes?anio=${anio}&mes=${mes}`);
       if (resGastos.ok) setGastosMes(await resGastos.json());
     } catch (error) {
       console.error("Error al cargar datos del mes:", error);
@@ -68,7 +71,7 @@ function App() {
     if (!montoVenta) return;
 
     try {
-      await fetch('http://localhost:8080/api/ventas', {
+      await fetch(`${API_URL}/api/ventas`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -95,7 +98,7 @@ function App() {
     if (!montoGasto) return;
 
     try {
-      await fetch('http://localhost:8080/api/gastos', {
+      await fetch(`${API_URL}/api/gastos`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -115,7 +118,7 @@ function App() {
 
   const eliminarVenta = async (id) => {
     if (!confirm("¿Seguro querés eliminar esta venta?")) return;
-    await fetch(`http://localhost:8080/api/ventas/${id}`, { method: 'DELETE' });
+    await fetch(`${API_URL}/api/ventas/${id}`, { method: 'DELETE' });
     cargarDatosDia();
     cargarDatosMes();
   };
@@ -127,9 +130,9 @@ function App() {
     const medioElegido = metodoPagoStr.trim().toUpperCase() === 'MP' ? 'MERCADO_PAGO' : 'EFECTIVO';
 
     try {
-      await fetch(`http://localhost:8080/api/ventas/${ventaFiado.id}`, { method: 'DELETE' });
+      await fetch(`${API_URL}/api/ventas/${ventaFiado.id}`, { method: 'DELETE' });
 
-      await fetch('http://localhost:8080/api/ventas', {
+      await fetch(`${API_URL}/api/ventas`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -150,7 +153,7 @@ function App() {
 
   const eliminarGasto = async (id) => {
     if (!confirm("¿Seguro querés eliminar este gasto?")) return;
-    await fetch(`http://localhost:8080/api/gastos/${id}`, { method: 'DELETE' });
+    await fetch(`${API_URL}/api/gastos/${id}`, { method: 'DELETE' });
     cargarDatosDia();
     cargarDatosMes();
   };
