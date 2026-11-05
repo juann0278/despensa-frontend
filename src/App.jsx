@@ -33,9 +33,13 @@ function App() {
   const [tipoGasto, setTipoGasto] = useState('PROVEEDOR');
   const [observaciones, setObservaciones] = useState('');
 
-  // Estado para manejar el pago de fiados de forma visual con <select>
+  // Estado para manejar el pago de fiados individual de forma visual con <select>
   const [fiadoSeleccionadoParaPagar, setFiadoSeleccionadoParaPagar] = useState(null);
   const [metodoPagoFiado, setMetodoPagoFiado] = useState('EFECTIVO');
+
+  // Estados para manejar el pago de TODA LA CUENTA de un cliente
+  const [clienteSeleccionadoParaPagarTodo, setClienteSeleccionadoParaPagarTodo] = useState(null);
+  const [metodoPagoTodo, setMetodoPagoTodo] = useState('EFECTIVO');
 
   useEffect(() => {
     cargarDatosDia();
@@ -160,6 +164,39 @@ function App() {
     }
   };
 
+  // Función para saldar TODA la cuenta del cliente de una vez
+  const confirmarSaldarTodoCliente = async (cliente, ventasDelCliente) => {
+    const totalDeuda = ventasDelCliente.reduce((acc, v) => acc + v.monto, 0);
+    if (totalDeuda <= 0) return;
+
+    try {
+      // 1. Borramos todos los fiados individuales de ese cliente
+      for (const v of ventasDelCliente) {
+        await fetch(`${API_URL}/api/ventas/${v.id}`, { method: 'DELETE' });
+      }
+
+      // 2. Registramos una única venta por el monto total con el medio de pago elegido
+      await fetch(`${API_URL}/api/ventas`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          monto: totalDeuda,
+          turno: 'MANANA',
+          medioPago: metodoPagoTodo,
+          nombreCliente: null,
+          descripcion: `Pago total de cuenta corriente de ${cliente}`
+        })
+      });
+
+      setClienteSeleccionadoParaPagarTodo(null);
+      setMetodoPagoTodo('EFECTIVO');
+      cargarDatosDia();
+      cargarDatosMes();
+    } catch (error) {
+      console.error("Error al saldar toda la cuenta:", error);
+    }
+  };
+
   const eliminarGasto = async (id) => {
     if (!confirm("¿Seguro querés eliminar este gasto?")) return;
     await fetch(`${API_URL}/api/gastos/${id}`, { method: 'DELETE' });
@@ -261,13 +298,57 @@ function App() {
               {Object.entries(deudasPorCliente).map(([cliente, ventas]) => {
                 const totalDeudaCliente = ventas.reduce((acc, v) => acc + v.monto, 0);
                 return (
-                  <div key={cliente} className="bg-white p-4 rounded-xl border border-amber-200 shadow-sm flex flex-col justify-between">
+                  <div key={cliente} className="bg-white p-4 rounded-xl border border-amber-200 shadow-sm flex flex-col justify-between space-y-3">
                     <div>
-                      <div className="flex justify-between items-center mb-2">
-                        <span className="font-bold text-slate-800 text-base">👤 {cliente}</span>
-                        <span className="font-black text-rose-600 text-lg">${totalDeudaCliente}</span>
+                      {/* Cabecera del Cliente con el Botón Pagar Todo */}
+                      <div className="flex justify-between items-start mb-2 border-b border-amber-100 pb-2">
+                        <div>
+                          <span className="font-bold text-slate-800 text-base block">👤 {cliente}</span>
+                          <span className="font-black text-rose-600 text-lg">${totalDeudaCliente}</span>
+                        </div>
+                        <button 
+                          onClick={() => {
+                            setClienteSeleccionadoParaPagarTodo(cliente);
+                            setMetodoPagoTodo('EFECTIVO');
+                          }}
+                          className="bg-indigo-600 hover:bg-indigo-700 text-white font-bold px-2.5 py-1.5 rounded-lg text-xs transition shadow-sm"
+                          title="Saldar toda la cuenta de una vez"
+                        >
+                          Pagar Todo ⚡
+                        </button>
                       </div>
-                      <div className="text-xs text-slate-500 space-y-2 mb-3 max-h-40 overflow-y-auto">
+
+                      {/* Panel desplegable si elige Pagar Todo */}
+                      {clienteSeleccionadoParaPagarTodo === cliente && (
+                        <div className="bg-indigo-50 p-3 rounded-xl border border-indigo-200 space-y-2 mb-3">
+                          <p className="text-xs font-bold text-indigo-900">Pagar todo (${totalDeudaCliente}):</p>
+                          <select 
+                            value={metodoPagoTodo}
+                            onChange={(e) => setMetodoPagoTodo(e.target.value)}
+                            className="w-full bg-white border border-indigo-300 rounded px-2 py-1 text-xs font-semibold text-slate-700 outline-none"
+                          >
+                            <option value="EFECTIVO">Efectivo</option>
+                            <option value="MERCADO_PAGO">Mercado Pago</option>
+                          </select>
+                          <div className="flex gap-2">
+                            <button 
+                              onClick={() => confirmarSaldarTodoCliente(cliente, ventas)}
+                              className="flex-1 bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold py-1.5 rounded shadow"
+                            >
+                              Confirmar Pago Total ✓
+                            </button>
+                            <button 
+                              onClick={() => setClienteSeleccionadoParaPagarTodo(null)}
+                              className="bg-slate-300 hover:bg-slate-400 text-slate-700 text-xs font-bold px-2 py-1.5 rounded"
+                            >
+                              Cancelar
+                            </button>
+                          </div>
+                        </div>
+                      )}
+
+                      {/* Lista de fiados individuales */}
+                      <div className="text-xs text-slate-500 space-y-2 max-h-40 overflow-y-auto">
                         {ventas.map((v) => (
                           <div key={v.id} className="bg-slate-50 p-2 rounded-lg border border-slate-100 space-y-2">
                             <div className="flex justify-between items-center">
@@ -283,30 +364,30 @@ function App() {
                               </button>
                             </div>
 
-                            {/* Panel desplegable de selección de pago para este fiado específico */}
+                            {/* Panel desplegable de selección de pago individual */}
                             {fiadoSeleccionadoParaPagar && fiadoSeleccionadoParaPagar.id === v.id && (
-                              <div className="bg-amber-100/80 p-2.5 rounded-lg border border-amber-300 space-y-2 animate-fadeIn">
-                                <p className="text-[11px] font-bold text-amber-900">¿Cómo abona {cliente}?</p>
+                              <div className="bg-amber-100/90 p-2 rounded-lg border border-amber-300 space-y-2">
+                                <p className="text-[10px] font-bold text-amber-900">¿Cómo abona este?</p>
                                 <select 
                                   value={metodoPagoFiado}
                                   onChange={(e) => setMetodoPagoFiado(e.target.value)}
-                                  className="w-full bg-white border border-amber-300 rounded px-2 py-1 text-xs font-semibold text-slate-700 outline-none"
+                                  className="w-full bg-white border border-amber-300 rounded px-2 py-0.5 text-xs font-semibold text-slate-700 outline-none"
                                 >
                                   <option value="EFECTIVO">Efectivo</option>
                                   <option value="MERCADO_PAGO">Mercado Pago</option>
                                 </select>
-                                <div className="flex gap-2">
+                                <div className="flex gap-1">
                                   <button 
                                     onClick={confirmarSaldarFiado}
-                                    className="flex-1 bg-emerald-700 hover:bg-emerald-800 text-white text-xs font-bold py-1 rounded shadow"
+                                    className="flex-1 bg-emerald-700 hover:bg-emerald-800 text-white text-[10px] font-bold py-1 rounded"
                                   >
-                                    Confirmar Pago
+                                    Confirmar
                                   </button>
                                   <button 
                                     onClick={() => setFiadoSeleccionadoParaPagar(null)}
-                                    className="bg-slate-300 hover:bg-slate-400 text-slate-700 text-xs font-bold px-2 py-1 rounded"
+                                    className="bg-slate-300 text-slate-700 text-[10px] font-bold px-2 py-1 rounded"
                                   >
-                                    Cancelar
+                                    ✕
                                   </button>
                                 </div>
                               </div>
@@ -315,7 +396,7 @@ function App() {
                         ))}
                       </div>
                     </div>
-                    <span className="text-[10px] text-amber-700 bg-amber-100 px-2 py-1 rounded text-center font-medium">
+                    <span className="text-[10px] text-amber-700 bg-amber-100 px-2 py-1 rounded text-center font-medium block">
                       {ventas.length} {ventas.length === 1 ? 'fiado pendiente' : 'fiados pendientes'}
                     </span>
                   </div>
