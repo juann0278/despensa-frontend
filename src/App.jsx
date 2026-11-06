@@ -553,7 +553,7 @@ function App() {
                 />
               </div>
               <button type="submit" className="w-full bg-[#5c3a21] hover:bg-[#3d2514] text-white font-bold py-3 rounded-2xl transition shadow-md">
-                Guardar Venta (Turno Automático ⏰)
+                Guardar Venta
               </button>
             </form>
           </div>
