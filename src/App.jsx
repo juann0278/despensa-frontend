@@ -21,9 +21,8 @@ function App() {
   const mesActualStr = hoy.substring(0, 7); 
   const [mesFiltro, setMesFiltro] = useState(mesActualStr);
 
-  // Estados formularios de Venta
+  // Estados formularios de Venta (Ya no se necesita el estado 'turno' manual)
   const [montoVenta, setMontoVenta] = useState('');
-  const [turno, setTurno] = useState('MANANA');
   const [medioPago, setMedioPago] = useState('EFECTIVO');
   const [nombreCliente, setNombreCliente] = useState('');
   const [descripcionVenta, setDescripcionVenta] = useState('');
@@ -78,13 +77,17 @@ function App() {
     e.preventDefault();
     if (!montoVenta) return;
 
+    // --- CÁLCULO AUTOMÁTICO DE TURNO SEGÚN LA HORA ---
+    const horaActual = new Date().getHours();
+    const turnoAutomatico = horaActual < 14 ? 'MANANA' : 'TARDE';
+
     try {
       await fetch(`${API_URL}/api/ventas`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           monto: parseFloat(montoVenta),
-          turno,
+          turno: turnoAutomatico,
           medioPago,
           nombreCliente: medioPago === 'FIADO' ? nombreCliente.trim() : null,
           descripcion: descripcionVenta
@@ -135,18 +138,20 @@ function App() {
     if (!fiadoSeleccionadoParaPagar) return;
 
     const ventaFiado = fiadoSeleccionadoParaPagar;
+    const horaActual = new Date().getHours();
+    const turnoAutomatico = horaActual < 14 ? 'MANANA' : 'TARDE';
 
     try {
       // 1. Borramos el fiado original
       await fetch(`${API_URL}/api/ventas/${ventaFiado.id}`, { method: 'DELETE' });
 
-      // 2. Creamos la venta real con el medio de pago elegido (EFECTIVO o MERCADO_PAGO)
+      // 2. Creamos la venta real con el medio de pago elegido y turno automático
       await fetch(`${API_URL}/api/ventas`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           monto: ventaFiado.monto,
-          turno: 'MANANA',
+          turno: turnoAutomatico,
           medioPago: metodoPagoFiado,
           nombreCliente: null,
           descripcion: `Pago de fiado de ${ventaFiado.nombreCliente}`
@@ -169,19 +174,22 @@ function App() {
     const totalDeuda = ventasDelCliente.reduce((acc, v) => acc + v.monto, 0);
     if (totalDeuda <= 0) return;
 
+    const horaActual = new Date().getHours();
+    const turnoAutomatico = horaActual < 14 ? 'MANANA' : 'TARDE';
+
     try {
       // 1. Borramos todos los fiados individuales de ese cliente
       for (const v of ventasDelCliente) {
         await fetch(`${API_URL}/api/ventas/${v.id}`, { method: 'DELETE' });
       }
 
-      // 2. Registramos una única venta por el monto total con el medio de pago elegido
+      // 2. Registramos una única venta por el monto total con turno automático
       await fetch(`${API_URL}/api/ventas`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           monto: totalDeuda,
-          turno: 'MANANA',
+          turno: turnoAutomatico,
           medioPago: metodoPagoTodo,
           nombreCliente: null,
           descripcion: `Pago total de cuenta corriente de ${cliente}`
@@ -279,7 +287,7 @@ function App() {
           </div>
         </div>
 
-        {/* Panel Resumen del Mes */}
+        {/* Panel Resumen del Mes (Con el color ámbar combinado en lugar del verde chillón) */}
         <div className="bg-gradient-to-r from-[#3d2514] to-[#5c3a21] text-white p-6 rounded-3xl shadow-lg flex flex-col md:flex-row justify-between items-center gap-4 border border-[#72492d]">
           <div>
             <span className="text-xs font-bold uppercase tracking-wider text-amber-200/80 block">📊 Balance General del Mes ({mesFiltro})</span>
@@ -489,7 +497,7 @@ function App() {
         {/* Formularios */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           
-          {/* Registrar Venta */}
+          {/* Registrar Venta (Sin selector de turno manual) */}
           <div className="bg-white p-6 rounded-3xl shadow-sm border border-stone-200">
             <h2 className="text-lg font-bold text-stone-800 mb-4 flex items-center gap-2">
               💰 Registrar Venta
@@ -507,30 +515,17 @@ function App() {
                 />
               </div>
 
-              <div className="grid grid-cols-2 gap-3">
-                <div>
-                  <label className="block text-xs font-bold text-stone-500 mb-1">Turno</label>
-                  <select 
-                    value={turno}
-                    onChange={(e) => setTurno(e.target.value)}
-                    className="w-full border border-stone-300 rounded-2xl p-3 text-sm focus:ring-2 focus:ring-[#5c3a21] outline-none bg-white font-medium"
-                  >
-                    <option value="MANANA">Mañana</option>
-                    <option value="TARDE">Tarde</option>
-                  </select>
-                </div>
-                <div>
-                  <label className="block text-xs font-bold text-stone-500 mb-1">Medio de Pago</label>
-                  <select 
-                    value={medioPago}
-                    onChange={(e) => setMedioPago(e.target.value)}
-                    className="w-full border border-stone-300 rounded-2xl p-3 text-sm focus:ring-2 focus:ring-[#5c3a21] outline-none bg-white font-medium"
-                  >
-                    <option value="EFECTIVO">Efectivo</option>
-                    <option value="MERCADO_PAGO">Mercado Pago</option>
-                    <option value="FIADO">Fiado</option>
-                  </select>
-                </div>
+              <div>
+                <label className="block text-xs font-bold text-stone-500 mb-1">Medio de Pago</label>
+                <select 
+                  value={medioPago}
+                  onChange={(e) => setMedioPago(e.target.value)}
+                  className="w-full border border-stone-300 rounded-2xl p-3 text-sm focus:ring-2 focus:ring-[#5c3a21] outline-none bg-white font-medium"
+                >
+                  <option value="EFECTIVO">Efectivo</option>
+                  <option value="MERCADO_PAGO">Mercado Pago</option>
+                  <option value="FIADO">Fiado</option>
+                </select>
               </div>
 
               {medioPago === 'FIADO' && (
@@ -558,7 +553,7 @@ function App() {
                 />
               </div>
               <button type="submit" className="w-full bg-[#5c3a21] hover:bg-[#3d2514] text-white font-bold py-3 rounded-2xl transition shadow-md">
-                Guardar Venta
+                Guardar Venta (Turno Automático ⏰)
               </button>
             </form>
           </div>
