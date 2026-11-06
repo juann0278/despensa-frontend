@@ -233,25 +233,35 @@ function App() {
   }, {});
 
   return (
-    <div className="min-h-screen bg-slate-100 p-6 font-sans">
+    <div className="min-h-screen bg-[#FDFBF7] p-4 md:p-8 font-sans text-stone-800">
       <div className="max-w-5xl mx-auto space-y-6">
         
         {/* Cabecera general */}
-        <div className="bg-white p-6 rounded-2xl shadow-sm flex flex-col md:flex-row justify-between items-center gap-4">
-          <div>
-            <h1 className="text-2xl font-bold text-slate-800 flex items-center gap-2">
-              🛒 Despensa "Lo de Gonza"
-            </h1>
-            <p className="text-slate-500 text-sm">Control diario y general del negocio</p>
+        <div className="bg-white p-6 rounded-3xl shadow-sm border border-stone-200 flex flex-col md:flex-row justify-between items-center gap-4">
+          <div className="flex items-center gap-4">
+            <div className="w-16 h-16 rounded-2xl overflow-hidden border-2 border-[#5c3a21] shadow-md bg-[#5c3a21] flex items-center justify-center shrink-0">
+              <img 
+                src="/logo-gonza.jpeg" 
+                alt="Lo de Gonza" 
+                className="w-full h-full object-cover"
+                onError={(e)=>{e.target.style.display='none'}}
+              />
+            </div>
+            <div>
+              <h1 className="text-2xl md:text-3xl font-extrabold text-[#3d2514] tracking-tight flex items-center gap-2">
+                Despensa <span className="text-[#c28e2c]">"Lo de Gonza"</span>
+              </h1>
+              <p className="text-stone-500 text-sm font-medium">Control diario y general del negocio</p>
+            </div>
           </div>
 
           {/* Selector de Mes Desplegable */}
-          <div className="flex items-center gap-3 bg-slate-50 p-3 rounded-xl border border-slate-200">
-            <label className="text-sm font-medium text-slate-600">Mes:</label>
+          <div className="flex items-center gap-3 bg-stone-50 p-3 rounded-2xl border border-stone-200 shadow-inner">
+            <label className="text-sm font-bold text-stone-600">Mes:</label>
             <select 
               value={mesFiltro}
               onChange={(e) => setMesFiltro(e.target.value)}
-              className="bg-white border border-slate-300 rounded-lg px-3 py-1.5 text-sm font-semibold text-slate-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 cursor-pointer"
+              className="bg-white border border-stone-300 rounded-xl px-3 py-2 text-sm font-bold text-stone-700 focus:outline-none focus:ring-2 focus:ring-[#5c3a21] cursor-pointer"
             >
               <option value="2026-01">Enero 2026</option>
               <option value="2026-02">Febrero 2026</option>
@@ -270,40 +280,40 @@ function App() {
         </div>
 
         {/* Panel Resumen del Mes */}
-        <div className="bg-indigo-900 text-white p-6 rounded-2xl shadow-md flex flex-col md:flex-row justify-between items-center gap-4">
+        <div className="bg-gradient-to-r from-[#3d2514] to-[#5c3a21] text-white p-6 rounded-3xl shadow-lg flex flex-col md:flex-row justify-between items-center gap-4 border border-[#72492d]">
           <div>
-            <span className="text-xs font-bold uppercase tracking-wider text-indigo-200 block">📊 Balance General del Mes ({mesFiltro})</span>
+            <span className="text-xs font-bold uppercase tracking-wider text-amber-200/80 block">📊 Balance General del Mes ({mesFiltro})</span>
             <div className="flex gap-6 mt-2 text-sm">
-              <span>Ingresos Reales: <b>${totalVentasMesVal}</b></span>
-              <span>Gastos: <b>${totalGastosMesVal}</b></span>
+              <span>Ingresos Reales: <b className="text-amber-300">${totalVentasMesVal}</b></span>
+              <span>Gastos: <b className="text-amber-300">${totalGastosMesVal}</b></span>
             </div>
           </div>
           <div className="text-right">
-            <span className="text-xs font-bold uppercase tracking-wider text-indigo-200 block">Ganancia Neta Mensual</span>
-            <span className={`text-3xl font-black ${balanceNetoMesVal >= 0 ? 'text-emerald-400' : 'text-rose-400'}`}>
+            <span className="text-xs font-bold uppercase tracking-wider text-amber-200/80 block">Ganancia Neta Mensual</span>
+            <span className={`text-3xl font-black ${balanceNetoMesVal >= 0 ? 'text-amber-300' : 'text-rose-300'}`}>
               ${balanceNetoMesVal}
             </span>
           </div>
         </div>
 
         {/* Cuentas Corrientes / Fiados Pendientes */}
-        <div className="bg-amber-50 border border-amber-200 p-6 rounded-2xl shadow-sm">
-          <h2 className="text-lg font-bold text-amber-900 mb-3 flex items-center gap-2">
+        <div className="bg-amber-50/70 border border-amber-200/80 p-6 rounded-3xl shadow-sm">
+          <h2 className="text-lg font-bold text-amber-900 mb-4 flex items-center gap-2">
             📝 Cuentas Corrientes (Fiados Pendientes del Mes)
           </h2>
           {Object.keys(deudasPorCliente).length === 0 ? (
-            <p className="text-sm text-amber-700 italic">No hay clientes con deudas pendientes en este mes.</p>
+            <p className="text-sm text-amber-800 italic">No hay clientes con deudas pendientes en este mes.</p>
           ) : (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
               {Object.entries(deudasPorCliente).map(([cliente, ventas]) => {
                 const totalDeudaCliente = ventas.reduce((acc, v) => acc + v.monto, 0);
                 return (
-                  <div key={cliente} className="bg-white p-4 rounded-xl border border-amber-200 shadow-sm flex flex-col justify-between space-y-3">
+                  <div key={cliente} className="bg-white p-4 rounded-2xl border border-amber-200/80 shadow-sm flex flex-col justify-between space-y-3">
                     <div>
                       {/* Cabecera del Cliente con el Botón Pagar Todo */}
-                      <div className="flex justify-between items-start mb-2 border-b border-amber-100 pb-2">
+                      <div className="flex justify-between items-start mb-3 border-b border-amber-100 pb-2">
                         <div>
-                          <span className="font-bold text-slate-800 text-base block">👤 {cliente}</span>
+                          <span className="font-bold text-stone-800 text-base block">👤 {cliente}</span>
                           <span className="font-black text-rose-600 text-lg">${totalDeudaCliente}</span>
                         </div>
                         <button 
@@ -311,7 +321,7 @@ function App() {
                             setClienteSeleccionadoParaPagarTodo(cliente);
                             setMetodoPagoTodo('EFECTIVO');
                           }}
-                          className="bg-indigo-600 hover:bg-indigo-700 text-white font-bold px-2.5 py-1.5 rounded-lg text-xs transition shadow-sm"
+                          className="bg-[#5c3a21] hover:bg-[#3d2514] text-white font-bold px-3 py-1.5 rounded-xl text-xs transition shadow-sm"
                           title="Saldar toda la cuenta de una vez"
                         >
                           Pagar Todo ⚡
@@ -320,12 +330,12 @@ function App() {
 
                       {/* Panel desplegable si elige Pagar Todo */}
                       {clienteSeleccionadoParaPagarTodo === cliente && (
-                        <div className="bg-indigo-50 p-3 rounded-xl border border-indigo-200 space-y-2 mb-3">
-                          <p className="text-xs font-bold text-indigo-900">Pagar todo (${totalDeudaCliente}):</p>
+                        <div className="bg-amber-100/90 p-3 rounded-2xl border border-amber-300 space-y-2 mb-3 animate-fadeIn">
+                          <p className="text-xs font-bold text-amber-900">Pagar todo (${totalDeudaCliente}):</p>
                           <select 
                             value={metodoPagoTodo}
                             onChange={(e) => setMetodoPagoTodo(e.target.value)}
-                            className="w-full bg-white border border-indigo-300 rounded px-2 py-1 text-xs font-semibold text-slate-700 outline-none"
+                            className="w-full bg-white border border-amber-300 rounded-xl px-3 py-1.5 text-xs font-semibold text-stone-700 outline-none"
                           >
                             <option value="EFECTIVO">Efectivo</option>
                             <option value="MERCADO_PAGO">Mercado Pago</option>
@@ -333,13 +343,13 @@ function App() {
                           <div className="flex gap-2">
                             <button 
                               onClick={() => confirmarSaldarTodoCliente(cliente, ventas)}
-                              className="flex-1 bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold py-1.5 rounded shadow"
+                              className="flex-1 bg-[#5c3a21] hover:bg-[#3d2514] text-white text-xs font-bold py-1.5 rounded-xl shadow"
                             >
                               Confirmar Pago Total ✓
                             </button>
                             <button 
                               onClick={() => setClienteSeleccionadoParaPagarTodo(null)}
-                              className="bg-slate-300 hover:bg-slate-400 text-slate-700 text-xs font-bold px-2 py-1.5 rounded"
+                              className="bg-stone-300 hover:bg-stone-400 text-stone-700 text-xs font-bold px-3 py-1.5 rounded-xl"
                             >
                               Cancelar
                             </button>
@@ -348,17 +358,17 @@ function App() {
                       )}
 
                       {/* Lista de fiados individuales */}
-                      <div className="text-xs text-slate-500 space-y-2 max-h-40 overflow-y-auto">
+                      <div className="text-xs text-stone-500 space-y-2 max-h-40 overflow-y-auto pr-1">
                         {ventas.map((v) => (
-                          <div key={v.id} className="bg-slate-50 p-2 rounded-lg border border-slate-100 space-y-2">
+                          <div key={v.id} className="bg-stone-50/80 p-2.5 rounded-xl border border-stone-200/60 space-y-2">
                             <div className="flex justify-between items-center">
-                              <span className="font-medium text-slate-700">{v.descripcion || 'Sin detalle'} (<b className="text-slate-900">${v.monto}</b>)</span>
+                              <span className="font-medium text-stone-700">{v.descripcion || 'Sin detalle'} (<b className="text-stone-900">${v.monto}</b>)</span>
                               <button 
                                 onClick={() => {
                                   setFiadoSeleccionadoParaPagar(v);
                                   setMetodoPagoFiado('EFECTIVO');
                                 }} 
-                                className="bg-emerald-600 hover:bg-emerald-700 text-white font-bold px-2.5 py-1 rounded text-xs transition shadow-sm"
+                                className="bg-[#5c3a21] hover:bg-[#3d2514] text-white font-bold px-2.5 py-1 rounded-lg text-xs transition shadow-sm"
                               >
                                 Pagar ✓
                               </button>
@@ -366,26 +376,26 @@ function App() {
 
                             {/* Panel desplegable de selección de pago individual */}
                             {fiadoSeleccionadoParaPagar && fiadoSeleccionadoParaPagar.id === v.id && (
-                              <div className="bg-amber-100/90 p-2 rounded-lg border border-amber-300 space-y-2">
+                              <div className="bg-amber-100 p-2.5 rounded-xl border border-amber-300 space-y-2">
                                 <p className="text-[10px] font-bold text-amber-900">¿Cómo abona este?</p>
                                 <select 
                                   value={metodoPagoFiado}
                                   onChange={(e) => setMetodoPagoFiado(e.target.value)}
-                                  className="w-full bg-white border border-amber-300 rounded px-2 py-0.5 text-xs font-semibold text-slate-700 outline-none"
+                                  className="w-full bg-white border border-amber-300 rounded-lg px-2 py-1 text-xs font-semibold text-stone-700 outline-none"
                                 >
                                   <option value="EFECTIVO">Efectivo</option>
                                   <option value="MERCADO_PAGO">Mercado Pago</option>
                                 </select>
-                                <div className="flex gap-1">
+                                <div className="flex gap-1.5">
                                   <button 
                                     onClick={confirmarSaldarFiado}
-                                    className="flex-1 bg-emerald-700 hover:bg-emerald-800 text-white text-[10px] font-bold py-1 rounded"
+                                    className="flex-1 bg-[#5c3a21] hover:bg-[#3d2514] text-white text-[10px] font-bold py-1 rounded-lg"
                                   >
                                     Confirmar
                                   </button>
                                   <button 
                                     onClick={() => setFiadoSeleccionadoParaPagar(null)}
-                                    className="bg-slate-300 text-slate-700 text-[10px] font-bold px-2 py-1 rounded"
+                                    className="bg-stone-300 text-stone-700 text-[10px] font-bold px-2.5 py-1 rounded-lg"
                                   >
                                     ✕
                                   </button>
@@ -396,7 +406,7 @@ function App() {
                         ))}
                       </div>
                     </div>
-                    <span className="text-[10px] text-amber-700 bg-amber-100 px-2 py-1 rounded text-center font-medium block">
+                    <span className="text-[10px] text-amber-800 bg-amber-100/80 px-2 py-1 rounded-lg text-center font-bold block">
                       {ventas.length} {ventas.length === 1 ? 'fiado pendiente' : 'fiados pendientes'}
                     </span>
                   </div>
@@ -407,20 +417,20 @@ function App() {
         </div>
 
         {/* Cabecera de Fecha y Botón para Ver Estadísticas del Día */}
-        <div className="bg-white p-6 rounded-2xl shadow-sm flex flex-col md:flex-row justify-between items-center gap-4">
-          <div className="flex items-center gap-3 bg-slate-50 p-3 rounded-xl border border-slate-200">
-            <label className="text-sm font-medium text-slate-600">Ver Día:</label>
+        <div className="bg-white p-6 rounded-3xl shadow-sm border border-stone-200 flex flex-col md:flex-row justify-between items-center gap-4">
+          <div className="flex items-center gap-3 bg-stone-50 p-3 rounded-2xl border border-stone-200 shadow-inner">
+            <label className="text-sm font-bold text-stone-600">Ver Día:</label>
             <input 
               type="date" 
               value={fechaFiltro}
               onChange={(e) => setFechaFiltro(e.target.value)}
-              className="bg-white border border-slate-300 rounded-lg px-3 py-1.5 text-sm font-semibold text-slate-700 focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="bg-white border border-stone-300 rounded-xl px-3 py-2 text-sm font-bold text-stone-700 focus:outline-none focus:ring-2 focus:ring-[#5c3a21]"
             />
           </div>
 
           <button 
             onClick={() => setMostrarCierreCaja(!mostrarCierreCaja)}
-            className="bg-indigo-600 hover:bg-indigo-700 text-white font-bold px-5 py-3 rounded-xl transition shadow-md shadow-indigo-200 flex items-center gap-2 text-sm"
+            className="bg-[#5c3a21] hover:bg-[#3d2514] text-white font-bold px-6 py-3 rounded-2xl transition shadow-md flex items-center gap-2 text-sm"
           >
             📊 {mostrarCierreCaja ? 'Ocultar Estadísticas del Día' : 'Ver Estadísticas del Día'}
           </button>
@@ -428,48 +438,48 @@ function App() {
 
         {/* PANEL DESPLEGABLE: Estadísticas y Cierre del Día */}
         {mostrarCierreCaja && (
-          <div className="bg-slate-900 text-white p-6 rounded-2xl shadow-xl space-y-6 border border-slate-800 animate-fadeIn">
-            <div className="flex justify-between items-center border-b border-slate-800 pb-4">
+          <div className="bg-[#2a190e] text-white p-6 md:p-8 rounded-3xl shadow-xl space-y-6 border border-[#5c3a21] animate-fadeIn">
+            <div className="flex justify-between items-center border-b border-[#5c3a21] pb-4">
               <div>
-                <h3 className="text-lg font-bold flex items-center gap-2">
+                <h3 className="text-lg font-bold flex items-center gap-2 text-amber-100">
                   📈 Cierre y Estadísticas del Día ({fechaFiltro})
                 </h3>
-                <p className="text-xs text-slate-400">Resumen detallado de ingresos, medios de pago y balances</p>
+                <p className="text-xs text-stone-400">Resumen detallado de ingresos, medios de pago y balances</p>
               </div>
               <button 
                 onClick={() => setMostrarCierreCaja(false)}
-                className="text-slate-400 hover:text-white text-sm font-bold bg-slate-800 px-3 py-1 rounded-lg"
+                className="text-stone-400 hover:text-white text-sm font-bold bg-[#3d2514] px-3 py-1.5 rounded-xl"
               >
                 ✕ Cerrar
               </button>
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-              <div className="bg-slate-800 p-4 rounded-xl border border-slate-700">
-                <span className="text-xs font-bold text-slate-400 uppercase">💵 Efectivo en Caja</span>
+              <div className="bg-[#3d2514] p-4 rounded-2xl border border-[#5c3a21]">
+                <span className="text-xs font-bold text-amber-200 uppercase">💵 Efectivo en Caja</span>
                 <p className="text-2xl font-bold text-emerald-400 mt-1">${totalEfectivoDia}</p>
               </div>
-              <div className="bg-slate-800 p-4 rounded-xl border border-slate-700">
-                <span className="text-xs font-bold text-slate-400 uppercase">📱 Mercado Pago</span>
-                <p className="text-2xl font-bold text-sky-400 mt-1">${totalMpDia}</p>
+              <div className="bg-[#3d2514] p-4 rounded-2xl border border-[#5c3a21]">
+                <span className="text-xs font-bold text-amber-200 uppercase">📱 Mercado Pago</span>
+                <p className="text-2xl font-bold text-amber-300 mt-1">${totalMpDia}</p>
               </div>
-              <div className="bg-slate-800 p-4 rounded-xl border border-slate-700">
-                <span className="text-xs font-bold text-slate-400 uppercase">📉 Total Gastos</span>
-                <p className="text-2xl font-bold text-rose-400 mt-1">${totalGastosDia}</p>
+              <div className="bg-[#3d2514] p-4 rounded-2xl border border-[#5c3a21]">
+                <span className="text-xs font-bold text-amber-200 uppercase">📉 Total Gastos</span>
+                <p className="text-2xl font-bold text-rose-300 mt-1">${totalGastosDia}</p>
               </div>
-              <div className={`p-4 rounded-xl border ${balanceNetoDia >= 0 ? 'bg-emerald-950/40 border-emerald-800 text-emerald-300' : 'bg-rose-950/40 border-rose-800 text-rose-300'}`}>
+              <div className={`p-4 rounded-2xl border ${balanceNetoDia >= 0 ? 'bg-[#3d2514] border-amber-600/50 text-amber-200' : 'bg-rose-950/50 border-rose-800 text-rose-300'}`}>
                 <span className="text-xs font-bold uppercase tracking-wider block opacity-80">Balance Neto del Día</span>
                 <p className="text-2xl font-black mt-1">${balanceNetoDia}</p>
               </div>
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-2 border-t border-slate-800">
-              <div className="bg-slate-800/50 p-4 rounded-xl flex justify-between items-center">
-                <span className="text-sm font-medium text-slate-300">☀️ Ventas Turno Mañana:</span>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-2 border-t border-[#5c3a21]">
+              <div className="bg-[#3d2514]/60 p-4 rounded-2xl flex justify-between items-center border border-[#5c3a21]/50">
+                <span className="text-sm font-medium text-stone-300">☀️ Ventas Turno Mañana:</span>
                 <span className="text-lg font-bold text-white">${ventasMañana}</span>
               </div>
-              <div className="bg-slate-800/50 p-4 rounded-xl flex justify-between items-center">
-                <span className="text-sm font-medium text-slate-300">🌙 Ventas Turno Tarde:</span>
+              <div className="bg-[#3d2514]/60 p-4 rounded-2xl flex justify-between items-center border border-[#5c3a21]/50">
+                <span className="text-sm font-medium text-stone-300">🌙 Ventas Turno Tarde:</span>
                 <span className="text-lg font-bold text-white">${ventasTarde}</span>
               </div>
             </div>
@@ -480,41 +490,41 @@ function App() {
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           
           {/* Registrar Venta */}
-          <div className="bg-white p-6 rounded-2xl shadow-sm border border-slate-200">
-            <h2 className="text-lg font-bold text-slate-800 mb-4 flex items-center gap-2">
+          <div className="bg-white p-6 rounded-3xl shadow-sm border border-stone-200">
+            <h2 className="text-lg font-bold text-stone-800 mb-4 flex items-center gap-2">
               💰 Registrar Venta
             </h2>
             <form onSubmit={registrarVenta} className="space-y-4">
               <div>
-                <label className="block text-xs font-bold text-slate-500 mb-1">Monto ($)</label>
+                <label className="block text-xs font-bold text-stone-500 mb-1">Monto ($)</label>
                 <input 
                   type="number" 
                   placeholder="Ej: 2500"
                   value={montoVenta}
                   onChange={(e) => setMontoVenta(e.target.value)}
-                  className="w-full border border-slate-300 rounded-xl p-2.5 text-sm focus:ring-2 focus:ring-blue-500 outline-none"
+                  className="w-full border border-stone-300 rounded-2xl p-3 text-sm focus:ring-2 focus:ring-[#5c3a21] outline-none"
                   required
                 />
               </div>
 
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="block text-xs font-bold text-slate-500 mb-1">Turno</label>
+                  <label className="block text-xs font-bold text-stone-500 mb-1">Turno</label>
                   <select 
                     value={turno}
                     onChange={(e) => setTurno(e.target.value)}
-                    className="w-full border border-slate-300 rounded-xl p-2.5 text-sm focus:ring-2 focus:ring-blue-500 outline-none bg-white"
+                    className="w-full border border-stone-300 rounded-2xl p-3 text-sm focus:ring-2 focus:ring-[#5c3a21] outline-none bg-white font-medium"
                   >
                     <option value="MANANA">Mañana</option>
                     <option value="TARDE">Tarde</option>
                   </select>
                 </div>
                 <div>
-                  <label className="block text-xs font-bold text-slate-500 mb-1">Medio de Pago</label>
+                  <label className="block text-xs font-bold text-stone-500 mb-1">Medio de Pago</label>
                   <select 
                     value={medioPago}
                     onChange={(e) => setMedioPago(e.target.value)}
-                    className="w-full border border-slate-300 rounded-xl p-2.5 text-sm focus:ring-2 focus:ring-blue-500 outline-none bg-white"
+                    className="w-full border border-stone-300 rounded-2xl p-3 text-sm focus:ring-2 focus:ring-[#5c3a21] outline-none bg-white font-medium"
                   >
                     <option value="EFECTIVO">Efectivo</option>
                     <option value="MERCADO_PAGO">Mercado Pago</option>
@@ -525,57 +535,57 @@ function App() {
 
               {medioPago === 'FIADO' && (
                 <div>
-                  <label className="block text-xs font-bold text-slate-500 mb-1">Nombre del Cliente (Debe)</label>
+                  <label className="block text-xs font-bold text-stone-500 mb-1">Nombre del Cliente (Debe)</label>
                   <input 
                     type="text" 
                     placeholder="Ej: Seba"
                     value={nombreCliente}
                     onChange={(e) => setNombreCliente(e.target.value)}
-                    className="w-full border border-amber-300 bg-amber-50 rounded-xl p-2.5 text-sm focus:ring-2 focus:ring-amber-500 outline-none"
+                    className="w-full border border-amber-300 bg-amber-50/50 rounded-2xl p-3 text-sm focus:ring-2 focus:ring-amber-500 outline-none font-medium"
                     required
                   />
                 </div>
               )}
 
               <div>
-                <label className="block text-xs font-bold text-slate-500 mb-1">Descripción (Opcional)</label>
+                <label className="block text-xs font-bold text-stone-500 mb-1">Descripción (Opcional)</label>
                 <input 
                   type="text" 
                   placeholder="Ej: Pan y Coca"
                   value={descripcionVenta}
                   onChange={(e) => setDescripcionVenta(e.target.value)}
-                  className="w-full border border-slate-300 rounded-xl p-2.5 text-sm focus:ring-2 focus:ring-blue-500 outline-none"
+                  className="w-full border border-stone-300 rounded-2xl p-3 text-sm focus:ring-2 focus:ring-[#5c3a21] outline-none"
                 />
               </div>
-              <button type="submit" className="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2.5 rounded-xl transition shadow-md shadow-blue-200">
+              <button type="submit" className="w-full bg-[#5c3a21] hover:bg-[#3d2514] text-white font-bold py-3 rounded-2xl transition shadow-md">
                 Guardar Venta
               </button>
             </form>
           </div>
 
           {/* Registrar Gasto */}
-          <div className="bg-white p-6 rounded-2xl shadow-sm border border-slate-200">
-            <h2 className="text-lg font-bold text-slate-800 mb-4 flex items-center gap-2">
+          <div className="bg-white p-6 rounded-3xl shadow-sm border border-stone-200">
+            <h2 className="text-lg font-bold text-stone-800 mb-4 flex items-center gap-2">
               📉 Registrar Gasto
             </h2>
             <form onSubmit={registrarGasto} className="space-y-4">
               <div>
-                <label className="block text-xs font-bold text-slate-500 mb-1">Monto ($)</label>
+                <label className="block text-xs font-bold text-stone-500 mb-1">Monto ($)</label>
                 <input 
                   type="number" 
                   placeholder="Ej: 15000"
                   value={montoGasto}
                   onChange={(e) => setMontoGasto(e.target.value)}
-                  className="w-full border border-slate-300 rounded-xl p-2.5 text-sm focus:ring-2 focus:ring-rose-500 outline-none"
+                  className="w-full border border-stone-300 rounded-2xl p-3 text-sm focus:ring-2 focus:ring-[#72492d] outline-none"
                   required
                 />
               </div>
               <div>
-                <label className="block text-xs font-bold text-slate-500 mb-1">Tipo de Gasto</label>
+                <label className="block text-xs font-bold text-stone-500 mb-1">Tipo de Gasto</label>
                 <select 
                   value={tipoGasto}
                   onChange={(e) => setTipoGasto(e.target.value)}
-                  className="w-full border border-slate-300 rounded-xl p-2.5 text-sm focus:ring-2 focus:ring-rose-500 outline-none bg-white"
+                  className="w-full border border-stone-300 rounded-2xl p-3 text-sm focus:ring-2 focus:ring-[#72492d] outline-none bg-white font-medium"
                 >
                   <option value="PROVEEDOR">Proveedor</option>
                   <option value="SERVICIOS">Servicios</option>
@@ -583,16 +593,16 @@ function App() {
                 </select>
               </div>
               <div>
-                <label className="block text-xs font-bold text-slate-500 mb-1">Observaciones</label>
+                <label className="block text-xs font-bold text-stone-500 mb-1">Observaciones</label>
                 <input 
                   type="text" 
                   placeholder="Ej: Compra de mercadería"
                   value={observaciones}
                   onChange={(e) => setObservaciones(e.target.value)}
-                  className="w-full border border-slate-300 rounded-xl p-2.5 text-sm focus:ring-2 focus:ring-rose-500 outline-none"
+                  className="w-full border border-stone-300 rounded-2xl p-3 text-sm focus:ring-2 focus:ring-[#72492d] outline-none"
                 />
               </div>
-              <button type="submit" className="w-full bg-rose-600 hover:bg-rose-700 text-white font-semibold py-2.5 rounded-xl transition shadow-md shadow-rose-200">
+              <button type="submit" className="w-full bg-[#72492d] hover:bg-[#5c3a21] text-white font-bold py-3 rounded-2xl transition shadow-md">
                 Guardar Gasto
               </button>
             </form>
@@ -604,23 +614,23 @@ function App() {
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6 pb-12">
           
           {/* Ventas del día */}
-          <div className="bg-white p-6 rounded-2xl shadow-sm border border-slate-200">
-            <h3 className="text-md font-bold text-slate-800 mb-4">Ventas del Día ({fechaFiltro})</h3>
-            <div className="space-y-2 max-h-60 overflow-y-auto">
+          <div className="bg-white p-6 rounded-3xl shadow-sm border border-stone-200">
+            <h3 className="text-md font-bold text-stone-800 mb-4">Ventas del Día ({fechaFiltro})</h3>
+            <div className="space-y-2 max-h-60 overflow-y-auto pr-1">
               {ventasDia.length === 0 ? (
-                <p className="text-sm text-slate-400 italic">No hay ventas registradas en esta fecha.</p>
+                <p className="text-sm text-stone-400 italic">No hay ventas registradas en esta fecha.</p>
               ) : (
                 ventasDia.map((v) => (
-                  <div key={v.id} className="flex justify-between items-center p-3 bg-slate-50 rounded-xl border border-slate-100">
+                  <div key={v.id} className="flex justify-between items-center p-3 bg-stone-50 rounded-2xl border border-stone-100">
                     <div>
                       <div className="flex items-center gap-2">
-                        <span className="font-bold text-slate-700">${v.monto}</span>
-                        <span className={`text-xs px-2 py-0.5 rounded font-semibold ${v.turno === 'MANANA' ? 'bg-amber-100 text-amber-700' : 'bg-indigo-100 text-indigo-700'}`}>
+                        <span className="font-bold text-stone-700">${v.monto}</span>
+                        <span className={`text-xs px-2 py-0.5 rounded-lg font-semibold ${v.turno === 'MANANA' ? 'bg-amber-100 text-amber-800' : 'bg-stone-200 text-stone-800'}`}>
                           {v.turno === 'MANANA' ? 'MAÑANA' : v.turno}
                         </span>
-                        <span className={`text-xs px-2 py-0.5 rounded font-semibold ${
-                          v.medioPago === 'EFECTIVO' ? 'bg-emerald-100 text-emerald-700' : 
-                          v.medioPago === 'MERCADO_PAGO' ? 'bg-sky-100 text-sky-700' : 'bg-amber-200 text-amber-900'
+                        <span className={`text-xs px-2 py-0.5 rounded-lg font-semibold ${
+                          v.medioPago === 'EFECTIVO' ? 'bg-emerald-100 text-emerald-800' : 
+                          v.medioPago === 'MERCADO_PAGO' ? 'bg-amber-100 text-amber-800' : 'bg-amber-200 text-amber-900'
                         }`}>
                           {v.medioPago === 'MERCADO_PAGO' ? 'Mercado Pago' : v.medioPago}
                         </span>
@@ -628,11 +638,11 @@ function App() {
                       {v.medioPago === 'FIADO' && v.nombreCliente && (
                         <p className="text-xs font-bold text-amber-800 mt-1">👤 Fiado a: {v.nombreCliente}</p>
                       )}
-                      {v.descripcion && <p className="text-xs text-slate-500 mt-0.5">{v.descripcion}</p>}
+                      {v.descripcion && <p className="text-xs text-stone-500 mt-0.5">{v.descripcion}</p>}
                     </div>
                     <button 
                       onClick={() => eliminarVenta(v.id)}
-                      className="text-slate-400 hover:text-rose-600 text-sm p-1 transition"
+                      className="text-stone-400 hover:text-rose-600 text-sm p-2 transition rounded-xl hover:bg-rose-50"
                       title="Eliminar venta"
                     >
                       🗑️
@@ -644,24 +654,24 @@ function App() {
           </div>
 
           {/* Gastos del día */}
-          <div className="bg-white p-6 rounded-2xl shadow-sm border border-slate-200">
-            <h3 className="text-md font-bold text-slate-800 mb-4">Gastos del Día ({fechaFiltro})</h3>
-            <div className="space-y-2 max-h-60 overflow-y-auto">
+          <div className="bg-white p-6 rounded-3xl shadow-sm border border-stone-200">
+            <h3 className="text-md font-bold text-stone-800 mb-4">Gastos del Día ({fechaFiltro})</h3>
+            <div className="space-y-2 max-h-60 overflow-y-auto pr-1">
               {gastosDia.length === 0 ? (
-                <p className="text-sm text-slate-400 italic">No hay gastos registrados en esta fecha.</p>
+                <p className="text-sm text-stone-400 italic">No hay gastos registrados en esta fecha.</p>
               ) : (
                 gastosDia.map((g) =>(
-                  <div key={g.id} className="flex justify-between items-center p-3 bg-slate-50 rounded-xl border border-slate-100">
+                  <div key={g.id} className="flex justify-between items-center p-3 bg-stone-50 rounded-2xl border border-stone-100">
                     <div>
-                      <span className="font-bold text-rose-600">${g.monto}</span>
-                      <span className="ml-2 text-xs bg-slate-200 text-slate-700 px-2 py-0.5 rounded font-semibold">
+                      <span className="font-bold text-[#72492d]">${g.monto}</span>
+                      <span className="ml-2 text-xs bg-stone-200 text-stone-700 px-2 py-0.5 rounded-lg font-semibold">
                         {g.tipo}
                       </span>
-                      {g.observaciones && <p className="text-xs text-slate-500 mt-0.5">{g.observaciones}</p>}
+                      {g.observaciones && <p className="text-xs text-stone-500 mt-0.5">{g.observaciones}</p>}
                     </div>
                     <button 
                       onClick={() => eliminarGasto(g.id)}
-                      className="text-slate-400 hover:text-rose-600 text-sm p-1 transition"
+                      className="text-stone-400 hover:text-rose-600 text-sm p-2 transition rounded-xl hover:bg-rose-50"
                       title="Eliminar gasto"
                     >
                       🗑️
