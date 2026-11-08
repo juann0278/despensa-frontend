@@ -21,7 +21,7 @@ function App() {
   const mesActualStr = hoy.substring(0, 7); 
   const [mesFiltro, setMesFiltro] = useState(mesActualStr);
 
-  // Estados formularios de Venta (Ya no se necesita el estado 'turno' manual)
+  // Estados formularios de Venta
   const [montoVenta, setMontoVenta] = useState('');
   const [medioPago, setMedioPago] = useState('EFECTIVO');
   const [nombreCliente, setNombreCliente] = useState('');
@@ -77,17 +77,12 @@ function App() {
     e.preventDefault();
     if (!montoVenta) return;
 
-    // --- CÁLCULO AUTOMÁTICO DE TURNO SEGÚN LA HORA ---
-    const horaActual = new Date().getHours();
-    const turnoAutomatico = horaActual < 14 ? 'MANANA' : 'TARDE';
-
     try {
       await fetch(`${API_URL}/api/ventas`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           monto: parseFloat(montoVenta),
-          turno: turnoAutomatico,
           medioPago,
           nombreCliente: medioPago === 'FIADO' ? nombreCliente.trim() : null,
           descripcion: descripcionVenta
@@ -138,20 +133,17 @@ function App() {
     if (!fiadoSeleccionadoParaPagar) return;
 
     const ventaFiado = fiadoSeleccionadoParaPagar;
-    const horaActual = new Date().getHours();
-    const turnoAutomatico = horaActual < 14 ? 'MANANA' : 'TARDE';
 
     try {
       // 1. Borramos el fiado original
       await fetch(`${API_URL}/api/ventas/${ventaFiado.id}`, { method: 'DELETE' });
 
-      // 2. Creamos la venta real con el medio de pago elegido y turno automático
+      // 2. Creamos la venta real con el medio de pago elegido
       await fetch(`${API_URL}/api/ventas`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           monto: ventaFiado.monto,
-          turno: turnoAutomatico,
           medioPago: metodoPagoFiado,
           nombreCliente: null,
           descripcion: `Pago de fiado de ${ventaFiado.nombreCliente}`
@@ -174,22 +166,18 @@ function App() {
     const totalDeuda = ventasDelCliente.reduce((acc, v) => acc + v.monto, 0);
     if (totalDeuda <= 0) return;
 
-    const horaActual = new Date().getHours();
-    const turnoAutomatico = horaActual < 14 ? 'MANANA' : 'TARDE';
-
     try {
       // 1. Borramos todos los fiados individuales de ese cliente
       for (const v of ventasDelCliente) {
         await fetch(`${API_URL}/api/ventas/${v.id}`, { method: 'DELETE' });
       }
 
-      // 2. Registramos una única venta por el monto total con turno automático
+      // 2. Registramos una única venta por el monto total
       await fetch(`${API_URL}/api/ventas`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           monto: totalDeuda,
-          turno: turnoAutomatico,
           medioPago: metodoPagoTodo,
           nombreCliente: null,
           descripcion: `Pago total de cuenta corriente de ${cliente}`
@@ -217,9 +205,6 @@ function App() {
   const totalVentasDia = ventasValidasDia.reduce((acc, item) => acc + item.monto, 0);
   const totalGastosDia = gastosDia.reduce((acc, item) => acc + item.monto, 0);
   const balanceNetoDia = totalVentasDia - totalGastosDia;
-
-  const ventasMañana = ventasValidasDia.filter(v => v.turno === 'MANANA').reduce((acc, v) => acc + v.monto, 0);
-  const ventasTarde = ventasValidasDia.filter(v => v.turno === 'TARDE').reduce((acc, v) => acc + v.monto, 0);
 
   // Desglose por Medio de Pago en el día
   const totalEfectivoDia = ventasValidasDia.filter(v => v.medioPago === 'EFECTIVO').reduce((acc, v) => acc + v.monto, 0);
@@ -287,7 +272,7 @@ function App() {
           </div>
         </div>
 
-        {/* Panel Resumen del Mes (Con el color ámbar combinado en lugar del verde chillón) */}
+        {/* Panel Resumen del Mes */}
         <div className="bg-gradient-to-r from-[#3d2514] to-[#5c3a21] text-white p-6 rounded-3xl shadow-lg flex flex-col md:flex-row justify-between items-center gap-4 border border-[#72492d]">
           <div>
             <span className="text-xs font-bold uppercase tracking-wider text-amber-200/80 block">📊 Balance General del Mes ({mesFiltro})</span>
@@ -462,7 +447,7 @@ function App() {
               </button>
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
               <div className="bg-[#3d2514] p-4 rounded-2xl border border-[#5c3a21]">
                 <span className="text-xs font-bold text-amber-200 uppercase">💵 Efectivo en Caja</span>
                 <p className="text-2xl font-bold text-emerald-400 mt-1">${totalEfectivoDia}</p>
@@ -475,21 +460,11 @@ function App() {
                 <span className="text-xs font-bold text-amber-200 uppercase">📉 Total Gastos</span>
                 <p className="text-2xl font-bold text-rose-300 mt-1">${totalGastosDia}</p>
               </div>
-              <div className={`p-4 rounded-2xl border ${balanceNetoDia >= 0 ? 'bg-[#3d2514] border-amber-600/50 text-amber-200' : 'bg-rose-950/50 border-rose-800 text-rose-300'}`}>
-                <span className="text-xs font-bold uppercase tracking-wider block opacity-80">Balance Neto del Día</span>
-                <p className="text-2xl font-black mt-1">${balanceNetoDia}</p>
-              </div>
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-2 border-t border-[#5c3a21]">
-              <div className="bg-[#3d2514]/60 p-4 rounded-2xl flex justify-between items-center border border-[#5c3a21]/50">
-                <span className="text-sm font-medium text-stone-300">☀️ Ventas Turno Mañana:</span>
-                <span className="text-lg font-bold text-white">${ventasMañana}</span>
-              </div>
-              <div className="bg-[#3d2514]/60 p-4 rounded-2xl flex justify-between items-center border border-[#5c3a21]/50">
-                <span className="text-sm font-medium text-stone-300">🌙 Ventas Turno Tarde:</span>
-                <span className="text-lg font-bold text-white">${ventasTarde}</span>
-              </div>
+            <div className={`p-4 rounded-2xl border ${balanceNetoDia >= 0 ? 'bg-[#3d2514] border-amber-600/50 text-amber-200' : 'bg-rose-950/50 border-rose-800 text-rose-300'}`}>
+              <span className="text-xs font-bold uppercase tracking-wider block opacity-80">Balance Neto del Día</span>
+              <p className="text-2xl font-black mt-1">${balanceNetoDia}</p>
             </div>
           </div>
         )}
@@ -497,7 +472,7 @@ function App() {
         {/* Formularios */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           
-          {/* Registrar Venta (Sin selector de turno manual) */}
+          {/* Registrar Venta */}
           <div className="bg-white p-6 rounded-3xl shadow-sm border border-stone-200">
             <h2 className="text-lg font-bold text-stone-800 mb-4 flex items-center gap-2">
               💰 Registrar Venta
@@ -620,9 +595,6 @@ function App() {
                     <div>
                       <div className="flex items-center gap-2">
                         <span className="font-bold text-stone-700">${v.monto}</span>
-                        <span className={`text-xs px-2 py-0.5 rounded-lg font-semibold ${v.turno === 'MANANA' ? 'bg-amber-100 text-amber-800' : 'bg-stone-200 text-stone-800'}`}>
-                          {v.turno === 'MANANA' ? 'MAÑANA' : v.turno}
-                        </span>
                         <span className={`text-xs px-2 py-0.5 rounded-lg font-semibold ${
                           v.medioPago === 'EFECTIVO' ? 'bg-emerald-100 text-emerald-800' : 
                           v.medioPago === 'MERCADO_PAGO' ? 'bg-amber-100 text-amber-800' : 'bg-amber-200 text-amber-900'
