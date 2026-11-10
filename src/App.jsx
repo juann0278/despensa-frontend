@@ -13,11 +13,17 @@ function App() {
   // Estado para mostrar u ocultar el panel de estadísticas del día
   const [mostrarCierreCaja, setMostrarCierreCaja] = useState(false);
 
-  // Fechas por defecto
-  const hoy = new Date().toISOString().split('T')[0];
+  // Fecha real de Argentina por defecto (evita el salto por zona horaria UTC)
+  const hoy = new Intl.DateTimeFormat('en-CA', {
+    timeZone: 'America/Argentina/Buenos_Aires',
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit'
+  }).format(new Date());
+
   const [fechaFiltro, setFechaFiltro] = useState(hoy);
 
-  // Mes actual por defecto (YYYY-MM)
+  // Mes actual por defecto (YYYY-MM) basándonos en la fecha de Argentina
   const mesActualStr = hoy.substring(0, 7); 
   const [mesFiltro, setMesFiltro] = useState(mesActualStr);
 
