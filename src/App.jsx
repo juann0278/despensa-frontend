@@ -77,6 +77,10 @@ function App() {
     e.preventDefault();
     if (!montoVenta) return;
 
+    // Respetamos la fecha que Gonzalo tiene seleccionada en el filtro
+    const horaActual = new Date().toTimeString().split(' ')[0]; // HH:mm:ss
+    const fechaHoraPersonalizada = `${fechaFiltro}T${horaActual}`;
+
     try {
       await fetch(`${API_URL}/api/ventas`, {
         method: 'POST',
@@ -85,7 +89,8 @@ function App() {
           monto: parseFloat(montoVenta),
           medioPago,
           nombreCliente: medioPago === 'FIADO' ? nombreCliente.trim() : null,
-          descripcion: descripcionVenta
+          descripcion: descripcionVenta,
+          fechaHora: fechaHoraPersonalizada
         })
       });
       setMontoVenta('');
@@ -103,6 +108,9 @@ function App() {
     e.preventDefault();
     if (!montoGasto) return;
 
+    const horaActual = new Date().toTimeString().split(' ')[0];
+    const fechaHoraPersonalizada = `${fechaFiltro}T${horaActual}`;
+
     try {
       await fetch(`${API_URL}/api/gastos`, {
         method: 'POST',
@@ -110,7 +118,8 @@ function App() {
         body: JSON.stringify({
           monto: parseFloat(montoGasto),
           tipo: tipoGasto,
-          observaciones
+          observaciones,
+          fechaHora: fechaHoraPersonalizada
         })
       });
       setMontoGasto('');
@@ -133,12 +142,14 @@ function App() {
     if (!fiadoSeleccionadoParaPagar) return;
 
     const ventaFiado = fiadoSeleccionadoParaPagar;
+    const horaActual = new Date().toTimeString().split(' ')[0];
+    const fechaHoraPersonalizada = `${fechaFiltro}T${horaActual}`;
 
     try {
       // 1. Borramos el fiado original
       await fetch(`${API_URL}/api/ventas/${ventaFiado.id}`, { method: 'DELETE' });
 
-      // 2. Creamos la venta real con el medio de pago elegido
+      // 2. Creamos la venta real con el medio de pago elegido en la fecha seleccionada
       await fetch(`${API_URL}/api/ventas`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -146,11 +157,11 @@ function App() {
           monto: ventaFiado.monto,
           medioPago: metodoPagoFiado,
           nombreCliente: null,
-          descripcion: `Pago de fiado de ${ventaFiado.nombreCliente}`
+          descripcion: `Pago de fiado de ${ventaFiado.nombreCliente}`,
+          fechaHora: fechaHoraPersonalizada
         })
       });
 
-      // Limpiamos el estado de pago
       setFiadoSeleccionadoParaPagar(null);
       setMetodoPagoFiado('EFECTIVO');
 
@@ -161,18 +172,18 @@ function App() {
     }
   };
 
-  // Función para saldar TODA la cuenta del cliente de una vez
   const confirmarSaldarTodoCliente = async (cliente, ventasDelCliente) => {
     const totalDeuda = ventasDelCliente.reduce((acc, v) => acc + v.monto, 0);
     if (totalDeuda <= 0) return;
 
+    const horaActual = new Date().toTimeString().split(' ')[0];
+    const fechaHoraPersonalizada = `${fechaFiltro}T${horaActual}`;
+
     try {
-      // 1. Borramos todos los fiados individuales de ese cliente
       for (const v of ventasDelCliente) {
         await fetch(`${API_URL}/api/ventas/${v.id}`, { method: 'DELETE' });
       }
 
-      // 2. Registramos una única venta por el monto total
       await fetch(`${API_URL}/api/ventas`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -180,7 +191,8 @@ function App() {
           monto: totalDeuda,
           medioPago: metodoPagoTodo,
           nombreCliente: null,
-          descripcion: `Pago total de cuenta corriente de ${cliente}`
+          descripcion: `Pago total de cuenta corriente de ${cliente}`,
+          fechaHora: fechaHoraPersonalizada
         })
       });
 
@@ -200,13 +212,12 @@ function App() {
     cargarDatosMes();
   };
 
-  // Cálculos del Día (Excluyendo fiados pendientes)
+  // Cálculos del Día
   const ventasValidasDia = ventasDia.filter(v => v.medioPago !== 'FIADO');
   const totalVentasDia = ventasValidasDia.reduce((acc, item) => acc + item.monto, 0);
   const totalGastosDia = gastosDia.reduce((acc, item) => acc + item.monto, 0);
   const balanceNetoDia = totalVentasDia - totalGastosDia;
 
-  // Desglose por Medio de Pago en el día
   const totalEfectivoDia = ventasValidasDia.filter(v => v.medioPago === 'EFECTIVO').reduce((acc, v) => acc + v.monto, 0);
   const totalMpDia = ventasValidasDia.filter(v => v.medioPago === 'MERCADO_PAGO').reduce((acc, v) => acc + v.monto, 0);
 
@@ -216,7 +227,6 @@ function App() {
   const totalGastosMesVal = gastosMes.reduce((acc, item) => acc + item.monto, 0);
   const balanceNetoMesVal = totalVentasMesVal - totalGastosMesVal;
 
-  // Agrupar Fiados Pendientes del Mes
   const fiadosPendientes = ventasMes.filter(v => v.medioPago === 'FIADO' && v.nombreCliente);
   const deudasPorCliente = fiadosPendientes.reduce((acc, venta) => {
     const cliente = venta.nombreCliente;
@@ -248,7 +258,6 @@ function App() {
             </div>
           </div>
 
-          {/* Selector de Mes Desplegable */}
           <div className="flex items-center gap-3 bg-stone-50 p-3 rounded-2xl border border-stone-200 shadow-inner">
             <label className="text-sm font-bold text-stone-600">Mes:</label>
             <select 
@@ -303,7 +312,6 @@ function App() {
                 return (
                   <div key={cliente} className="bg-white p-4 rounded-2xl border border-amber-200/80 shadow-sm flex flex-col justify-between space-y-3">
                     <div>
-                      {/* Cabecera del Cliente con el Botón Pagar Todo */}
                       <div className="flex justify-between items-start mb-3 border-b border-amber-100 pb-2">
                         <div>
                           <span className="font-bold text-stone-800 text-base block">👤 {cliente}</span>
@@ -315,15 +323,13 @@ function App() {
                             setMetodoPagoTodo('EFECTIVO');
                           }}
                           className="bg-[#5c3a21] hover:bg-[#3d2514] text-white font-bold px-3 py-1.5 rounded-xl text-xs transition shadow-sm"
-                          title="Saldar toda la cuenta de una vez"
                         >
                           Pagar Todo ⚡
                         </button>
                       </div>
 
-                      {/* Panel desplegable si elige Pagar Todo */}
                       {clienteSeleccionadoParaPagarTodo === cliente && (
-                        <div className="bg-amber-100/90 p-3 rounded-2xl border border-amber-300 space-y-2 mb-3 animate-fadeIn">
+                        <div className="bg-amber-100/90 p-3 rounded-2xl border border-amber-300 space-y-2 mb-3">
                           <p className="text-xs font-bold text-amber-900">Pagar todo (${totalDeudaCliente}):</p>
                           <select 
                             value={metodoPagoTodo}
@@ -350,7 +356,6 @@ function App() {
                         </div>
                       )}
 
-                      {/* Lista de fiados individuales */}
                       <div className="text-xs text-stone-500 space-y-2 max-h-40 overflow-y-auto pr-1">
                         {ventas.map((v) => (
                           <div key={v.id} className="bg-stone-50/80 p-2.5 rounded-xl border border-stone-200/60 space-y-2">
@@ -367,7 +372,6 @@ function App() {
                               </button>
                             </div>
 
-                            {/* Panel desplegable de selección de pago individual */}
                             {fiadoSeleccionadoParaPagar && fiadoSeleccionadoParaPagar.id === v.id && (
                               <div className="bg-amber-100 p-2.5 rounded-xl border border-amber-300 space-y-2">
                                 <p className="text-[10px] font-bold text-amber-900">¿Cómo abona este?</p>
@@ -475,7 +479,7 @@ function App() {
           {/* Registrar Venta */}
           <div className="bg-white p-6 rounded-3xl shadow-sm border border-stone-200">
             <h2 className="text-lg font-bold text-stone-800 mb-4 flex items-center gap-2">
-              💰 Registrar Venta
+              💰 Registrar Venta <span className="text-xs font-normal text-stone-500">(para el día {fechaFiltro})</span>
             </h2>
             <form onSubmit={registrarVenta} className="space-y-4">
               <div>
@@ -536,7 +540,7 @@ function App() {
           {/* Registrar Gasto */}
           <div className="bg-white p-6 rounded-3xl shadow-sm border border-stone-200">
             <h2 className="text-lg font-bold text-stone-800 mb-4 flex items-center gap-2">
-              📉 Registrar Gasto
+              📉 Registrar Gasto <span className="text-xs font-normal text-stone-500">(para el día {fechaFiltro})</span>
             </h2>
             <form onSubmit={registrarGasto} className="space-y-4">
               <div>
@@ -627,7 +631,7 @@ function App() {
               {gastosDia.length === 0 ? (
                 <p className="text-sm text-stone-400 italic">No hay gastos registrados en esta fecha.</p>
               ) : (
-                gastosDia.map((g) =>(
+                gastosDia.map((g) => (
                   <div key={g.id} className="flex justify-between items-center p-3 bg-stone-50 rounded-2xl border border-stone-100">
                     <div>
                       <span className="font-bold text-[#72492d]">${g.monto}</span>
